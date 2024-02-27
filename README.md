@@ -3,21 +3,18 @@
 **TL;DR:** Our new decoding algorithm, Adaptive Decoding, enhances the diversity and coherence of open-ended text generation.
 ## Background
 <center>
-<img src="./img/generation1.png" alt="generation2 (1)" style="zoom:25%;" /><img src="./img/generation2.png" alt="generation2 (1)" style="zoom:25%;" />
+<img src="./img/generation1.png" alt="generation2 (1)" style="zoom:15%;" /><img src="./img/generation2.png" alt="generation2 (1)" style="zoom:15%;" />
 </center>
 During the generation process, the distribution predicted by the language model (LM) generally falls into two categories.  The first is a flattened distribution, indicating that the LM has multiple potential choices for the next token.  The second is a sharp distribution, suggesting that the model's choices are more limited.  Ensuring that the model dynamically understands the current state is crucial for generating sentences with high diversity and high coherence.
 
 ## Introduction
-We propose a novel decoding algorithm termed Adaptive Decoding, which leverages entropy principles. Each distribution predicted by the language model can be conceptualized as a state comprising two sets: the candidate set $\mathcal{A}_{x_{<t}}$ and the ordered set $\mathcal{B}_{x_{<t}}$, wherein tokens are arranged by their probabilities.
+We propose a novel decoding algorithm termed Adaptive Decoding, which leverages entropy principles. Each distribution predicted by the language model can be conceptualized as a state comprising two sets: the candidate set **A** and the ordered set **B**, wherein tokens are arranged by their probabilities.
 
-By iteratively selecting the token with the highest probability from $\mathcal{B}_{x{<t}}$ and adding it to $\mathcal{A}_{x{<t}}$, we can gauge the increment in confidence, which reflects the rationality of incorporating this token into the candidate set.
+By iteratively selecting the token with the highest probability from **B** and adding it to **A**, we can gauge the increment in confidence, which reflects the rationality of incorporating this token into the candidate set.
 
-
-$$
-\begin{aligned}
-\frac{1}{\log |\mathcal{V}|}\left(\underbrace{p_k \log p_k}_{\text{uncertainty A}}+\underbrace{\left(1-\sum_i^k p_i\right) \log \frac{\left(1-\sum_i^k p_i\right)}{|\mathcal{V}|-k}}_{\text{uncertainty B}}\right.\left.\underbrace{-\left(1-\sum_i^{k-1} p_i\right) \log \frac{\left(1-\sum_i^{k-1} p_i\right)}{|\mathcal{V}|-k+1}}_{\text{uncertainty C}}\right)
-\end{aligned}
-$$
+<center>
+<img src="./img/equation.png" alt="generation2 (1)" style="zoom:100%;" />
+</center>
 
 Detailed information can be found in our paper.
 
