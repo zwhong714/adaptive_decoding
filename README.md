@@ -2,9 +2,7 @@
 
 **TL;DR:** Our new decoding algorithm, Adaptive Decoding, enhances the diversity and coherence of open-ended text generation.
 ## Background
-<center>
-<img src="./img/generation1.png" alt="generation2 (1)" style="zoom:15%;" /><img src="./img/generation2.png" alt="generation2 (1)" style="zoom:15%;" />
-</center>
+
 During the generation process, the distribution predicted by the language model (LM) generally falls into two categories.  The first is a flattened distribution, indicating that the LM has multiple potential choices for the next token.  The second is a sharp distribution, suggesting that the model's choices are more limited.  Ensuring that the model dynamically understands the current state is crucial for generating sentences with high diversity and high coherence.
 
 ## Introduction
