@@ -65,3 +65,13 @@ There are several reasons why Charlotte is
 
 ## Citing our paper
 If adaptive decoding or this repository is useful in your own research, you can use the following BibTeX entry:
+```
+@misc{zhu2024improving,
+      title={Improving Open-Ended Text Generation via Adaptive Decoding}, 
+      author={Wenhong Zhu and Hongkun Hao and Zhiwei He and Yiming Ai and Rui Wang},
+      year={2024},
+      eprint={2402.18223},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
