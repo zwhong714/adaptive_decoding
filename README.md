@@ -28,7 +28,7 @@ Current language models decode text token by token according to probabilistic di
 **Method**: Each distribution predicted by the language model can be conceptualized as a state comprising two sets: the candidate set **A** and the ordered set **B**, wherein tokens are arranged by their probabilities. By iteratively selecting the token with the highest probability from **B** and adding it to **A**, we can gauge the increment in confidence, which reflects the rationality of incorporating this token into the candidate set.
 
 <center>
-<img src="./img/overview.png" alt="generation2 (1)" style="zoom:25%;" />
+<img src="./img/overview.png" alt="generation2 (1)" style="zoom:15%;" />
 </center>
 
 **Results**: Experimental results reveal that our method balances diversity and coherence well. The human evaluation shows that our method can generate human-preferred text. Additionally, our method can potentially improve the reasoning ability of language models. 
@@ -47,7 +47,7 @@ pip install -e transformers-main
 
 
 <center>
-<img src="./img/hyperparameter.png" alt="generation2 (1)" style="zoom:50%;" />
+<img src="./img/hyperparameter.png" alt="generation2 (1)" style="zoom:15%;" />
 </center>
 
 
