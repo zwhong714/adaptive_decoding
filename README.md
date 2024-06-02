@@ -1,70 +1,108 @@
-# Adaptive decoding
+# Adaptive decoding [[paper]](https://arxiv.org/abs/2402.18223)
 
-**TL;DR:** Our new decoding algorithm, Adaptive Decoding, enhances the diversity and coherence of open-ended text generation.
+
+
+**TL;DR:** Our new decoding algorithm, Adaptive Decoding, balances the diversity and coherence of open-ended text generation.
+
+## Update
+- [2024/5/31] we integrate our method into transformers.
+- [2024/5/1] our paper is accepted by ICML2024.
+- [2024/2/15] we first release our code and our paper.
+
 ## Background
+<center>
+<img src="./img/Background.png" alt="generation2 (1)" style="zoom:50%;" />
+</center>
 
 During the generation process, the distribution predicted by the language model (LM) generally falls into two categories.  The first is a flattened distribution, indicating that the LM has multiple potential choices for the next token.  The second is a sharp distribution, suggesting that the model's choices are more limited.  Ensuring that the model dynamically understands the current state is crucial for generating sentences with high diversity and high coherence.
 
-## Introduction
-We propose a novel decoding algorithm termed Adaptive Decoding, which leverages entropy principles. Each distribution predicted by the language model can be conceptualized as a state comprising two sets: the candidate set **A** and the ordered set **B**, wherein tokens are arranged by their probabilities.
-
-By iteratively selecting the token with the highest probability from **B** and adding it to **A**, we can gauge the increment in confidence, which reflects the rationality of incorporating this token into the candidate set.
+## Abstract
+Current language models decode text token by token according to probabilistic distribution, and determining the appropriate candidates for the next token is crucial to ensure generation quality. This study introduces adaptive decoding, a mechanism that dynamically empowers language models to ascertain a sensible candidate set during generation.  Specifically, we introduce an entropy-based metric called confidence and conceptualize determining the optimal candidate set as a confidence-increasing process. The rationality of including a token in the candidate set is assessed by leveraging the increment of confidence. 
 
 <center>
-<img src="./img/equation.png" alt="generation2 (1)" style="zoom:100%;" />
+<img src="./img/equation.png" alt="generation2 (1)" style="zoom:50%;" />
 </center>
 
-Detailed information can be found in our paper.
+
+
+**Method**: Each distribution predicted by the language model can be conceptualized as a state comprising two sets: the candidate set **A** and the ordered set **B**, wherein tokens are arranged by their probabilities. By iteratively selecting the token with the highest probability from **B** and adding it to **A**, we can gauge the increment in confidence, which reflects the rationality of incorporating this token into the candidate set.
+
+<center>
+<img src="./img/overview.png" alt="generation2 (1)" style="zoom:25%;" />
+</center>
+
+**Results**: Experimental results reveal that our method balances diversity and coherence well. The human evaluation shows that our method can generate human-preferred text. Additionally, our method can potentially improve the reasoning ability of language models. 
+
+Detailed information can be found in our [paper]((https://arxiv.org/abs/2402.18223)).
+
+## Installation
+```
+pip install -e transformers-main
+```
+
 
 ## Usage
+
+**Hyperparameter**: There is only one hyperparameter we need to tune for optimal generation, and the recommended values are 0.001 or 0.0005.
+
+
+<center>
+<img src="./img/hyperparameter.png" alt="generation2 (1)" style="zoom:50%;" />
+</center>
+
+
+
+
 ```python
+import os 
 import torch
 import numpy as np
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from adaptive import adaptive_decoding
+from tqdm import tqdm
+from pprint import pprint 
 
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 if torch.cuda.is_available():
     print ('Cuda is available.')
 cuda_available = torch.cuda.is_available()
-device = torch.device('cuda')
+device = 'auto'
 
-# Load your model
-model_name = 'gpt2-xl'
+model_name = 'meta-llama/Llama-2-7b-chat-hf'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name, device_map=device, torch_dtype=torch.float32)
+model = AutoModelForCausalLM.from_pretrained(model_name, device_map=device, torch_dtype=torch.float16)
 model.eval()
 
-# Using adaptive decoding
-prefix = "The city's growth has reflected the push and pull of many social and economic factors."
-max_len = 256
-epsilon = 0.001
-results = adaptive_decoding(model, tokenizer, prefix, max_len, epsilon)
+
+bos_token_id = tokenizer.bos_token_id
+eos_token_id = tokenizer.eos_token_id
+pad_token_id = tokenizer.pad_token_id if tokenizer.pad_token_id else eos_token_id
+
+device = model.device
+
+sentence = "Paige had 11 songs on her mp3 player. If she deleted 9 old songs from it and then added 8 new songs, how many songs does she have on her mp3 player? "
+
+prefix = f'''<s>[INST] <<SYS>>You are a help assistant and a math expert. Please solve the following question and directly return me the answer.<</SYS>>
+Problem: {sentence} 
+Let's think step by step\n[/INST]
+'''
+tokens = tokenizer.tokenize(prefix)
+prefix_id_list = tokenizer.convert_tokens_to_ids(tokens)
+input_ids = torch.tensor(prefix_id_list).to(device).repeat(1, 1)
+
+input_ids = model.generate(input_ids, max_new_tokens=512, do_sample=True, ada=5e-4, bos_token_id=bos_token_id, eos_token_id=eos_token_id, pad_token_id=eos_token_id)
+generated_results = tokenizer.batch_decode(input_ids, skip_special_tokens=True)
+pprint(generated_results)
+
 ```
 **Generation:**
 ```
-The city's growth has reflected the push and pull of many social and economic factors.  Some places are flourishing, while others are struggling.
-
-When the Great Recession began in 2008, downtown Charlotte started losing people, and soon downtown lost nearly 3,000 residents since 2010, Census estimates show.
-
-As new development has come to the heart of Charlotte, the city's once-thriving downtown area has lost nearly one-quarter of its population from 2010 to 2015, more than any other area in the city, U.S. Census data shows.  (Downtown's population has since been climbing.)
-
-While some people may now say the city is thriving, there are signs that downtown is becoming increasingly unaffordable.  For instance, rent rates in the city as a whole increased by 28 percent from 2002 to 2015, according to a report from real estate analytics firm Axiometrics.
-
-At the same time, many downtown jobs have been displaced, as well.
-
-The jobs displaced in the Charlotte area include retail management, retail sales and service, home furnishings, restaurant management, general office support, administrative support, and travel and hospitality.
-
-So, what's going on?  And what can people do to keep downtown growing?
-
-What's going on in the Charlotte area
-
-There are several reasons why Charlotte is
+["Of course! I'd be happy to help you solve this problem. Here's the step-by-step calculation:\n\n1. Paige had 11 songs on her mp3 player initially.\n2. She deleted 9 old songs from her mp3 player, so she has 11 - 9 = 2 songs left.\n3. Then, she added 8 new songs to her mp3 player, so she has 2 + 8 = 10 songs on her mp3 player now.\n\nTherefore, Paige has 10 songs on her mp3 player after deleting 9 old songs and adding 8 new ones."
 ```
 
 
 ## Citing our paper
-If adaptive decoding or this repository is useful in your own research, you can use the following BibTeX entry:
+If adaptive decoding or this repository is useful in your own research, you can use the following BibTeX entry. Thanks!🤗🤗🤗
 ```
 @misc{zhu2024improving,
       title={Improving Open-Ended Text Generation via Adaptive Decoding}, 
